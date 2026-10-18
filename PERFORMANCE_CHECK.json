@@ -1,0 +1,67 @@
+{
+  "context": "Loopback HTTP, Java 25, no live database or TLS; not a hosted Lighthouse result",
+  "welcome_warm_median_ms": 18.0,
+  "welcome_warm_max_ms": 1332.4,
+  "public_links_and_assets": [
+    {
+      "path": "/assets/bootstrap-5.3.8.min.css",
+      "status": 200,
+      "ms": 32.9
+    },
+    {
+      "path": "/assets/favicon.ico",
+      "status": 200,
+      "ms": 28.1
+    },
+    {
+      "path": "/assets/favicon.svg",
+      "status": 200,
+      "ms": 7.0
+    },
+    {
+      "path": "/assets/site.js",
+      "status": 200,
+      "ms": 7.4
+    },
+    {
+      "path": "/assets/social-preview.png",
+      "status": 200,
+      "ms": 7.1
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "ms": 30.0
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "ms": 30.3
+    },
+    {
+      "path": "/style.css",
+      "status": 200,
+      "ms": 6.0
+    },
+    {
+      "path": "/terms",
+      "status": 200,
+      "ms": 14.7
+    },
+    {
+      "path": "/welcome",
+      "status": 200,
+      "ms": 11.0
+    }
+  ],
+  "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+  "asset_sizes_bytes": {
+    "bootstrap-5.3.8.min.css": 232071,
+    "BOOTSTRAP-LICENSE.txt": 1093,
+    "favicon.ico": 5267,
+    "favicon.svg": 193,
+    "site.js": 2509,
+    "social-preview.png": 42348
+  },
+  "gzip_bootstrap_bytes": 30819
+}

@@ -1,0 +1,21 @@
+# Enable explicitly with: docker compose -f compose.yaml -f compose.smtp.yaml up -d app
+services:
+  app:
+    environment:
+      MDM_RESET_EMAIL_ENABLED: "true"
+      SMTP_HOST: ${SMTP_HOST:?Configure SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_FROM: ${SMTP_FROM:?Configure SMTP_FROM}
+      SMTP_AUTH: ${SMTP_AUTH:-true}
+      SMTP_STARTTLS_ENABLED: ${SMTP_STARTTLS_ENABLED:-true}
+      SMTP_SSL_ENABLED: ${SMTP_SSL_ENABLED:-false}
+    secrets:
+      - source: smtp_password
+        target: smtp.password
+    networks: [proxy, data, mail_egress]
+secrets:
+  smtp_password:
+    file: ./.secrets/smtp.password
+networks:
+  mail_egress: {}

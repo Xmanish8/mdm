@@ -1,0 +1,9 @@
+target
+.git
+.env
+.env.*
+.secrets
+.smtp-secret
+*.log
+work
+test-results.txt

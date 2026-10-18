@@ -1,0 +1,98 @@
+name: mdm
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: mdm
+      MYSQL_USER: mdm_app
+      MYSQL_PASSWORD_FILE: /run/secrets/db.password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/root.password
+    command: ["--require-secure-transport=ON", "--local-infile=OFF"]
+    secrets:
+      - {source: db_password, target: db.password}
+      - {source: root_password, target: root.password}
+      - {source: provision_password, target: provision.password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./deploy/02-permissions.sh:/docker-entrypoint-initdb.d/02-permissions.sh:ro
+    networks: [data]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    security_opt: ["no-new-privileges:true"]
+    logging: &logging
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  app:
+    image: mdm:local
+    build: .
+    restart: unless-stopped
+    environment: &environment
+      SPRING_PROFILES_ACTIVE: prod
+      SITE_BASE_URL: ${SITE_BASE_URL:?Set SITE_BASE_URL in .env}
+      LEGAL_OPERATOR: ${LEGAL_OPERATOR:?Set LEGAL_OPERATOR in .env}
+      LEGAL_CONTACT: ${LEGAL_CONTACT:?Set LEGAL_CONTACT in .env}
+      ANALYTICS_ENABLED: ${ANALYTICS_ENABLED:-false}
+    secrets:
+      - {source: db_password, target: db.password}
+      - {source: rate_secret, target: rate.secret}
+    depends_on:
+      db: {condition: service_healthy}
+    networks: [proxy, data]
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=128m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    logging: *logging
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set SITE_DOMAIN in .env}
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
+    networks: [edge, proxy]
+    security_opt: ["no-new-privileges:true"]
+    logging: *logging
+  bootstrap:
+    profiles: [tools]
+    image: mdm:local
+    command: ["--spring.main.web-application-type=none", "--mdm.bootstrap.enabled=true"]
+    environment:
+      <<: *environment
+      SPRING_DATASOURCE_USERNAME: mdm_provisioner
+      MDM_BOOTSTRAP_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+    secrets:
+      - {source: provision_password, target: db.password}
+      - {source: rate_secret, target: rate.secret}
+      - {source: bootstrap_password, target: bootstrap.password}
+    depends_on:
+      db: {condition: service_healthy}
+    networks: [data]
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=128m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+secrets:
+  db_password: {file: ./.secrets/db.password}
+  root_password: {file: ./.secrets/root.password}
+  provision_password: {file: ./.secrets/provision.password}
+  rate_secret: {file: ./.secrets/rate.secret}
+  bootstrap_password: {file: ./.secrets/bootstrap.password}
+volumes:
+  mysql_data: {}
+  caddy_data: {}
+  caddy_config: {}
+networks:
+  edge: {}
+  proxy: {internal: true}
+  data: {internal: true}
