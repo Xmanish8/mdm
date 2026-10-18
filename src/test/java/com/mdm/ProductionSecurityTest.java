@@ -24,7 +24,7 @@ class ProductionSecurityTest {
     @BeforeEach void allow(){when(limits.allow(anyString(),anyString(),anyInt(),anyInt())).thenReturn(true);}
     @Test void publicPageHasLocalAssetsCspAndConsent()throws Exception{
         mvc.perform(get("/welcome")).andExpect(status().isOk()).andExpect(header().string("Content-Security-Policy",containsString("default-src 'self'")))
-            .andExpect(header().string("X-Frame-Options","DENY")).andExpect(header().string("Referrer-Policy","no-referrer"))
+            .andExpect(header().string("X-Frame-Options","DENY")).andExpect(header().string("Referrer-Policy","strict-origin"))
             .andExpect(content().string(containsString("cookie-consent"))).andExpect(content().string(containsString("/assets/social-preview.png")))
             .andExpect(content().string(not(containsString("cdn.jsdelivr.net"))));
     }

@@ -17,7 +17,9 @@ public final class RequestProtection {
         public Headers(String baseUrl,boolean production){this.origin=URI.create(baseUrl).getScheme()+"://"+URI.create(baseUrl).getAuthority();this.production=production;}
         @Override protected void doFilterInternal(HttpServletRequest req,HttpServletResponse res,FilterChain chain)throws ServletException,IOException{
             res.setHeader("Content-Security-Policy","default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"+(production?"; upgrade-insecure-requests":""));
-            res.setHeader("Referrer-Policy","no-referrer");res.setHeader("X-Content-Type-Options","nosniff");
+            // no-referrer makes browser form POSTs send Origin: null, which our origin check rejects.
+            // strict-origin keeps the site's origin but never discloses URL paths or reset tokens.
+            res.setHeader("Referrer-Policy","strict-origin");res.setHeader("X-Content-Type-Options","nosniff");
             res.setHeader("Permissions-Policy","camera=(), microphone=(), geolocation=(), payment=(), usb=()");
             res.setHeader("X-Frame-Options","DENY");
             if(req.isSecure())res.setHeader("Strict-Transport-Security","max-age=31536000");
@@ -28,7 +30,10 @@ public final class RequestProtection {
             if(!Set.of("/welcome","/privacy","/terms","/sitemap.xml","/robots.txt").contains(path))res.setHeader("X-Robots-Tag","noindex, nofollow");
             String incoming=req.getHeader("Origin");
             if(incoming!=null&&!incoming.equals(origin)){
-                if(path.equals("/login"))org.slf4j.LoggerFactory.getLogger(Headers.class).info("Login form rejected: site address mismatch. Open the sign-in page at {}",origin+"/login");
+                if(path.equals("/login")){
+                    if("null".equals(incoming))org.slf4j.LoggerFactory.getLogger(Headers.class).info("Login form rejected: browser origin is hidden. Reload a fresh sign-in form at {}",origin+"/login");
+                    else org.slf4j.LoggerFactory.getLogger(Headers.class).info("Login form rejected: site address mismatch. Open the sign-in page at {}",origin+"/login");
+                }
                 res.sendError(403);return;
             }
             if(req.getContentLengthLong()>1_048_576){res.sendError(413);return;}

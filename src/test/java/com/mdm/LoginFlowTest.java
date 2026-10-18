@@ -42,13 +42,13 @@ class LoginFlowTest {
         when(work.summary(any())).thenReturn(Map.of("OPEN",0L,"IN_PROGRESS",0L,"BLOCKED",0L,"PENDING_APPROVAL",0L,"RESOLVED",0L,"CANCELLED",0L));
     }
     private MockHttpSession form() throws Exception {
-        var result=mvc.perform(get("/login")).andExpect(status().isOk()).andReturn();
+        var result=mvc.perform(get("/login")).andExpect(status().isOk()).andExpect(header().string("Referrer-Policy","strict-origin")).andReturn();
         var session=(MockHttpSession)result.getRequest().getSession();
         session.setAttribute("mdm.login.issued",System.currentTimeMillis()-2000);
         return session;
     }
     @Test void correctPasswordRedirectsToWorkingDashboard() throws Exception {
-        var result=mvc.perform(post("/login").session(form()).with(csrf()).param("username","alice@mdm.local").param("password","test-only-login-password"))
+        var result=mvc.perform(post("/login").session(form()).with(csrf()).header("Origin","http://localhost:8080").param("username","alice@mdm.local").param("password","test-only-login-password"))
             .andExpect(status().isFound()).andExpect(redirectedUrl("/")).andReturn();
         mvc.perform(get("/").session((MockHttpSession)result.getRequest().getSession()))
             .andExpect(status().isOk()).andExpect(content().string(containsString("Work overview")));
@@ -70,11 +70,16 @@ class LoginFlowTest {
         mvc.perform(post("/login").session(form()).with(csrf()).header("Origin","https://attacker.invalid").param("username","alice@mdm.local").param("password","test-only-login-password"))
             .andExpect(status().isForbidden());
     }
+    @Test void opaqueOriginRemainsForbiddenEvenWithValidCredentialsAndCsrf() throws Exception {
+        mvc.perform(post("/login").session(form()).with(csrf()).header("Origin","null").param("username","alice@mdm.local").param("password","test-only-login-password"))
+            .andExpect(status().isForbidden());
+    }
     @Test void browserFormAndCookiesWorkOverRealHttp() throws Exception {
         var client=java.net.http.HttpClient.newBuilder().cookieHandler(new java.net.CookieManager(null,java.net.CookiePolicy.ACCEPT_ALL)).followRedirects(java.net.http.HttpClient.Redirect.NEVER).build();
         String base="http://127.0.0.1:"+port;
         var page=client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base+"/login")).GET().build(),java.net.http.HttpResponse.BodyHandlers.ofString());
         org.junit.jupiter.api.Assertions.assertEquals(200,page.statusCode());
+        org.junit.jupiter.api.Assertions.assertEquals("strict-origin",page.headers().firstValue("Referrer-Policy").orElseThrow());
         var form=java.util.regex.Pattern.compile("<form[^>]*action=\"([^\"]+)\"").matcher(page.body());
         org.junit.jupiter.api.Assertions.assertTrue(form.find());
         var csrf=java.util.regex.Pattern.compile("name=\"_csrf\"[^>]*value=\"([^\"]+)\"").matcher(page.body());

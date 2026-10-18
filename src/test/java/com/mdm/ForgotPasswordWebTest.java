@@ -50,7 +50,7 @@ class ForgotPasswordWebTest {
     @Test void linkTokenMovesIntoServerSessionWithoutBeingConsumed()throws Exception{
         when(resets.usable(token)).thenReturn(true);var session=new MockHttpSession();
         mvc.perform(get("/reset-password").session(session).param("token",token)).andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/reset-password"));assertEquals(token,session.getAttribute("mdm.password-reset.token"));
-        mvc.perform(get("/reset-password").session(session)).andExpect(status().isOk()).andExpect(header().string("Referrer-Policy","no-referrer")).andExpect(content().string(containsString("Update password"))).andExpect(content().string(not(containsString(token))));
+        mvc.perform(get("/reset-password").session(session)).andExpect(status().isOk()).andExpect(header().string("Referrer-Policy","strict-origin")).andExpect(content().string(containsString("Update password"))).andExpect(content().string(not(containsString(token))));
         verify(resets,never()).reset(any(),anyString(),anyString());
     }
     @Test void expiredLinkShowsSafeRecoveryOption()throws Exception{mvc.perform(get("/reset-password").param("token",token)).andExpect(status().isOk()).andExpect(content().string(containsString("Request a new link"))).andExpect(content().string(not(containsString("name=\"password\""))));}
