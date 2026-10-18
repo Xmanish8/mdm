@@ -1,1 +1,20 @@
-<!DOCTYPE html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · MDM</title><meta name="robots" content="noindex,nofollow"><link rel="icon" href="/assets/favicon.svg"><link rel="stylesheet" href="/assets/bootstrap-5.3.8.min.css"><link rel="stylesheet" href="/style.css"></head><body><main class="login-card"><a class="brand" href="/welcome">M<span>DM</span></a><p class="eyebrow" th:text="${status ?: 'PLEASE CHECK'}"></p><h1>Let's find the next step.</h1><p th:switch="${status}"><span th:case="404">This page doesn't exist or has moved.</span><span th:case="403">You don't have permission to open this page or submit that action.</span><span th:case="429">Too many attempts. Wait a few minutes before trying again.</span><span th:case="400">Check the form values, refresh the page and try again.</span><span th:case="*">This request could not be completed. Please try again later.</span></p><a class="button" href="/welcome">Return to MDM →</a><a href="/login" class="d-block mt-3">Sign in</a></main></body></html>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · MDM</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/bootstrap-5.3.8.min.css">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main class="login-card"><a class="brand" href="/welcome">M<span>DM</span></a>
+<p class="eyebrow" th:text="${status ?: 'PLEASE CHECK'}">
+</p>
+<h1>Unable to complete this request</h1>
+<p th:switch="${status}"><span th:case="404">This page doesn't exist or has moved.</span><span th:case="403">You don't have permission to open this page or submit that action.</span><span th:case="429">Too many attempts. Wait a few minutes before trying again.</span><span th:case="400">Check the form values, refresh the page and try again.</span><span th:case="*">This request could not be completed. Please try again later.</span>
+</p><a class="button" href="/welcome">Return to MDM →</a><a href="/login" class="d-block mt-3">Sign in</a>
+</main>
+</body>
+</html>

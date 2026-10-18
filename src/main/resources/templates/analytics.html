@@ -1,1 +1,62 @@
-<!DOCTYPE html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aggregate analytics · MDM</title><link rel="stylesheet" href="/assets/bootstrap-5.3.8.min.css"><link rel="stylesheet" href="/style.css"><meta name="description" content="MDM brings team work, ownership, next actions and activity history into one focused operations workspace."><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#166956"><meta property="og:type" content="website"><meta property="og:title" content="MDM · Clear ownership. Confident teamwork."><meta property="og:description" content="A focused workspace for team operations, decisions and next steps."><meta property="og:image" th:content="${siteBase + '/assets/social-preview.png'}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="MDM: clear ownership, shared priorities and recorded decisions"><meta name="twitter:card" content="summary_large_image"><meta name="csrf-token" th:if="${_csrf != null}" th:content="${_csrf.token}"><meta name="csrf-header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"><meta name="mdm-analytics" th:content="${analyticsEnabled}"><link rel="icon" type="image/svg+xml" href="/assets/favicon.svg"><link rel="icon" href="/assets/favicon.ico" sizes="any"><script defer src="/assets/site.js"></script></head><body><header><a class="brand" href="/welcome">M<span>DM</span></a><a href="/admin">← Administration</a></header><main><p class="eyebrow">PRIVACY-FIRST MEASUREMENT</p><h1>Public-page overview.</h1><p class="muted">Daily counts only. No visitor identifiers, work items or user content. Latest 30 days.</p><p class="notice" th:unless="${analyticsEnabled}">Optional analytics is currently disabled. Previously collected aggregate rows may remain until scheduled expiry.</p><section class="panel padded"><div class="table-responsive"><table class="table"><thead><tr><th>DATE</th><th>PUBLIC PAGE</th><th>VIEWS</th></tr></thead><tbody><tr th:each="r:${rows}"><td th:text="${r.day}"></td><td th:text="${r.page}"></td><td th:text="${r.views}"></td></tr><tr th:if="${rows.isEmpty()}"><td colspan="3">No aggregate page views recorded.</td></tr></tbody></table></div></section></main><footer class="site-footer"><a href="/welcome">MDM</a><a href="/privacy">Privacy policy</a><a href="/terms">Terms of use</a><button type="button" class="text-button" id="cookie-preferences">Cookie preferences</button></footer><section id="cookie-consent" class="cookie-banner" aria-label="Cookie preferences" hidden><div><strong>Your privacy, your choice.</strong><p>Essential storage keeps you signed in and protects forms. Optional analytics counts public page views only.</p><a href="/privacy">Read our privacy policy</a></div><div class="cookie-actions"><button type="button" id="consent-essential" class="secondary">Essential only</button><button type="button" id="consent-analytics" th:if="${analyticsEnabled}">Allow analytics</button></div></section></body></html>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Aggregate analytics · MDM</title>
+<link rel="stylesheet" href="/assets/bootstrap-5.3.8.min.css">
+<link rel="stylesheet" href="/style.css">
+<meta name="description" content="Manage team tasks, owners, approvals and activity history in MDM.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#166956">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MDM · Team Task Management">
+<meta property="og:description" content="Manage tasks, updates and approvals across teams.">
+<meta property="og:image" th:content="${siteBase + '/assets/social-preview.png'}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MDM: clear ownership, shared priorities and recorded decisions">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="csrf-token" th:if="${_csrf != null}" th:content="${_csrf.token}">
+<meta name="csrf-header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+<meta name="mdm-analytics" th:content="${analyticsEnabled}">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="icon" href="/assets/favicon.ico" sizes="any">
+<script defer src="/assets/site.js">
+</script>
+</head>
+<body>
+<header><a class="brand" href="/welcome">M<span>DM</span></a><a href="/admin">← Administration</a>
+</header>
+<main>
+<p class="eyebrow">PRIVACY-FIRST MEASUREMENT</p>
+<h1>Public-page overview.</h1>
+<p class="muted">Daily counts only. No visitor identifiers, work items or user content. Latest 30 days.</p>
+<p class="notice" th:unless="${analyticsEnabled}">Optional analytics is currently disabled. Previously collected aggregate rows may remain until scheduled expiry.</p>
+<section class="panel padded">
+<div class="table-responsive">
+<table class="table">
+<thead>
+<tr><th>DATE</th><th>PUBLIC PAGE</th><th>VIEWS</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="r:${rows}"><td th:text="${r.day}"></td><td th:text="${r.page}"></td><td th:text="${r.views}"></td>
+</tr>
+<tr th:if="${rows.isEmpty()}"><td colspan="3">No aggregate page views recorded.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<footer class="site-footer"><a href="/welcome">MDM</a><a href="/privacy">Privacy policy</a><a href="/terms">Terms of use</a><button type="button" class="text-button" id="cookie-preferences">Cookie preferences</button>
+</footer>
+<section id="cookie-consent" class="cookie-banner" aria-label="Cookie preferences" hidden>
+<div><strong>Cookie preferences</strong>
+<p>Essential storage keeps you signed in and protects forms. Optional analytics counts public page views only.</p><a href="/privacy">Read our privacy policy</a>
+</div>
+<div class="cookie-actions"><button type="button" id="consent-essential" class="secondary">Essential only</button><button type="button" id="consent-analytics" th:if="${analyticsEnabled}">Allow analytics</button>
+</div>
+</section>
+</body>
+</html>

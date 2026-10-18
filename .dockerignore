@@ -6,4 +6,6 @@ target
 .smtp-secret
 *.log
 work
-test-results.txt
+.vscode
+.idea
+backups

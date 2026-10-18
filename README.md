@@ -1,39 +1,77 @@
-# MDM production preparation
+# MDM — Team Task Management
 
-This package hardens the existing Spring Boot project and prepares Docker + Caddy HTTPS deployment. It has not been deployed. A real domain and server are still required. Your existing E:\projects\MDM-enhanced folder and local MySQL data were not modified.
+Manish Marathe
 
-## What changed
+MDM is a web application for managing work across teams. Members can create and claim tasks, record updates, transfer responsibility and submit completed work for approval. Administrators manage teams, access and approvals.
 
-- Production profile: HTTPS redirects, secure/HttpOnly/SameSite cookies, cookie-only sessions, no debug/trace, no client stack traces/binding errors, cached templates, compression and bounded request/connection sizes.
-- Spring Security authentication, CSRF, admin route protection and current database resource checks remain enabled. Runtime DB permissions cannot create/drop tables, modify user roles or overwrite/delete audit history.
-- Shared SQL login throttling: 30 attempts per IP, 8 per account/IP and 30 per account per 15-minute fixed window. Authenticated writes are limited to 120 per identity/IP per minute. CSRF, a honeypot and form timing provide basic bot friction. No public signup exists.
-- Plain-text user content is escaped by Thymeleaf. Parameterized SQL and server-side limits remain in place. File uploads/multipart are disabled, not advertised as an implemented attachment feature.
-- Self-only CSP, frame denial, nosniff, origin-only referrers (no URL paths or query strings), restricted browser permissions and same-origin request checks. No wildcard CORS. Forwarded headers are overwritten at the trusted proxy.
-- New public /welcome, /privacy and /terms pages; clear workspace CTA; local Bootstrap/CSS/JS; metadata, favicon, original social preview, image alt text, crawler files, custom 404/error pages and mobile styling.
-- Optional first-party analytics is off by default. Consent permits daily counts of /welcome, /privacy and /terms only; no work content or visitor IDs. /admin/analytics shows aggregates. Cookies/preferences can be changed through the footer.
-- .env contains deployment settings only. Random database and rate-limit secrets are created in excluded .secrets files. The initial admin password is prompted privately and hashed with BCrypt.
+## Stack
 
-Read DEPLOYMENT.md for exact deployment steps, SECURITY_STATUS.md for implementation limits and TEST_REPORT.md for verification results. Do not describe this as an externally audited or already deployed production service.
+Java 21, Spring Boot 4.1.1, Spring MVC, Spring JDBC, MySQL, Thymeleaf, Bootstrap and Spring Security. Tests use JUnit, Spring Boot Test, MockMvc, Mockito and H2. There is no separate frontend build.
 
-## Local development
+## Run locally
 
-Extract into a new folder, keep your old project as a backup, start local MySQL and use `powershell -ExecutionPolicy Bypass -File .\start.ps1`. The local profile preserves your existing opsflow database and creates missing tables. Use -Demo only if you deliberately want development demo data. Production disables demo seeding and SQL initialization.
+Install JDK 21 or later and MySQL. Create an empty database for a new installation:
 
-Spring Boot does not automatically load .env in local Java execution. Docker Compose reads .env and passes only declared non-secret settings. Local start.ps1 prompts for DB_PASSWORD as before.
+```sql
+CREATE DATABASE mdm CHARACTER SET utf8mb4;
+```
 
-## Test and build
+In PowerShell, from this directory:
 
-Run `.\mvnw.cmd test` or `.\mvnw.cmd package` with Java 21+. The default suite does not need MySQL. Set MDM_DB_TESTS=true and DB_PASSWORD against a dedicated test database for actual MySQL checks. Keep the normal application running in one instance unless you add a shared session store; rate counters already use shared SQL.
+```powershell
+$env:DB_URL='jdbc:mysql://127.0.0.1:3306/mdm'
+$env:DB_USER='root'
+.\start.ps1 -Demo
+```
 
-## Production quick path
+The script asks privately for the MySQL password and a demo password of at least 12 characters. Open [localhost:8080/login](http://localhost:8080/login).
 
-1. Choose a domain and server, install Docker Engine + Compose, and configure DNS.
-2. Run scripts/setup-production.ps1 and protect the generated secret files as described in DEPLOYMENT.md.
-3. Review the legal text and configure the operator/contact details.
-4. Follow the staged database/build/bootstrap/start commands in DEPLOYMENT.md.
-5. Verify HTTPS, restricted MySQL grants, backups/restores, login, permissions and performance on the real host.
+| Name | Login email | Access |
+|---|---|---|
+| Manish Marathe | manish@mdm.local | Administrator |
+| Aditi Sharma | aditi@mdm.local | Operations |
+| Rahul Deshmukh | rahul@mdm.local | Operations |
+| Sneha Patil | sneha@mdm.local | Engineering |
 
-No API keys are needed for the included functionality. Do not add provider keys to HTML, JavaScript, images, Git history, Docker build arguments or .env.example. Rotate any credential previously exposed; deleting it from current source does not revoke it.
+New demo accounts use the password entered at startup. Existing accounts keep their password. On the first updated demo startup, the original sample profiles are renamed in place; account IDs, passwords and work references are preserved. A customized profile or an email conflict is left unchanged. The `.local` addresses are for demonstrations and cannot receive Internet email.
 
-## Forgot password
-The login page now includes email-based recovery. Read FORGOT_PASSWORD.md for SMTP configuration and the existing-production database migration. Delivery stays disabled until SMTP is configured. Reset links expire after 15 minutes and are single-use; password changes invalidate existing signed-in sessions. No real SMTP credentials are included.
+Without `-Demo`, startup creates missing tables but does not create sample accounts. To continue using an existing installation, keep its `DB_URL`; when unset, the local default is the original `opsflow` database. Do not change the URL to an empty database if you want to keep seeing existing work.
+
+Local Java startup reads environment variables, not `.env`. No password is stored in application properties. Use a separate least-privilege database account for a deployed installation.
+
+## Main workflows
+
+- Create a work item in one of your teams, then claim it to become its owner.
+- Update its priority, next action and status. Submit it for approval when ready; an administrator can approve or return it.
+- Reassign active or blocked work to another member of the same team, recording a reason.
+- Add comments and review the activity history on the task page.
+- Use Administration to create teams and member accounts and grant team membership.
+
+Members can access only their teams' work. The queue has search, filters, status counts and pagination. Comments are plain text. Public registration and file uploads are not supported.
+
+## Correctness
+
+Claiming uses a conditional update so only one person succeeds. Updates and transfers include a version check to reject stale changes. Create/comment requests use durable retry keys to avoid duplicate writes. Work changes and their audit events commit in one transaction. These decisions and their limitations are explained in [ENGINEERING_DECISIONS.md](ENGINEERING_DECISIONS.md).
+
+## Tests and build
+
+```powershell
+.\mvnw.cmd test
+.\mvnw.cmd package
+```
+
+The default suite runs without MySQL credentials. It includes real H2 transaction tests and a real HTTP login test. MySQL integration tests require a separate test database and an explicit opt-in; see [TEST_REPORT.md](TEST_REPORT.md).
+
+## Configuration and deployment
+
+Password recovery requires SMTP and is disabled by default. See [FORGOT_PASSWORD.md](FORGOT_PASSWORD.md).
+
+Docker Compose includes MySQL and a Caddy HTTPS proxy. Domain, server and mail credentials must be configured before deployment. See [DEPLOYMENT.md](DEPLOYMENT.md). Analytics is optional, disabled by default and requires browser consent. Deployment has not been verified on a public host.
+
+Known limits include an in-memory session store and mail queue, no MFA/SSO, no membership-revocation interface and no hosted load test. Restarting the application ends active sessions. Optional mail delivery needs a configured provider; links expire after 15 minutes and can be used once.
+
+## Submit on GitHub
+
+Keep `src`, tests, the Maven wrapper, database scripts, deployment files and these instructions in the repository. Do not upload `target`, `.env`, secret directories, backups or editor settings. Bootstrap's license is included with its local assets.
+
+Run the tests, review `git status`, commit the source and push it to your repository. The supplied workflow runs Java 21 tests, checks common secret patterns and builds the Docker image. Submit the repository link after checking its Actions result.

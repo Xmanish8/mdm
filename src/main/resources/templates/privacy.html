@@ -1,1 +1,60 @@
-<!DOCTYPE html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Privacy policy · MDM</title><link rel="stylesheet" href="/assets/bootstrap-5.3.8.min.css"><link rel="stylesheet" href="/style.css"><meta name="description" content="How the MDM workspace uses account data, essential storage and optional aggregate analytics."><meta name="robots" content="index,follow"><meta name="theme-color" content="#166956"><meta property="og:type" content="website"><meta property="og:title" content="MDM · Clear ownership. Confident teamwork."><meta property="og:description" content="A focused workspace for team operations, decisions and next steps."><meta property="og:image" th:content="${siteBase + '/assets/social-preview.png'}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="MDM: clear ownership, shared priorities and recorded decisions"><meta name="twitter:card" content="summary_large_image"><meta name="csrf-token" th:if="${_csrf != null}" th:content="${_csrf.token}"><meta name="csrf-header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"><meta name="mdm-analytics" th:content="${analyticsEnabled}"><link rel="icon" type="image/svg+xml" href="/assets/favicon.svg"><link rel="icon" href="/assets/favicon.ico" sizes="any"><script defer src="/assets/site.js"></script><link rel="canonical" th:href="${siteBase + '/privacy'}"></head><body><header><a class="brand" href="/welcome">M<span>DM</span></a><a href="/login">Open your workspace →</a></header><main class="legal" id="main"><p class="eyebrow">YOUR INFORMATION</p><h1>Privacy policy</h1><p>Effective: 18 October 2026. Operator: <strong th:text="${operator}"></strong>.</p><p class="notice" th:if="${#strings.isEmpty(contact)}">Deployment draft: the operator must configure its identity, contact details and organizational retention practices before publication.</p><h2>Information used to run the workspace</h2><p>MDM stores member names, email addresses, password hashes, roles, team memberships, work items, comments and activity history. Authorized team members and administrators can access information according to their permissions. Do not put passwords, access keys or unnecessary sensitive personal information in work items.</p><h2>Security and essential storage</h2><p>The service uses an essential session cookie to maintain sign-in and protect form submissions. It expires after inactivity or sign-out. Your browser stores your cookie preference for up to 180 days. Security throttling stores keyed hashes of account/IP combinations and request counters, not raw addresses in that counter table. Expired counters are periodically removed after one day. Infrastructure providers may separately retain operational logs under the operator's policy.</p><h2>Optional analytics</h2><p th:if="${analyticsEnabled}">If you choose analytics, MDM counts views of this introduction, privacy and terms pages by page and date. It sends no user ID, email, IP address, query string, work-item content or advertising identifier to the analytics table. It does not load an external analytics service. Aggregate rows older than 30 days are periodically removed.</p><p th:unless="${analyticsEnabled}">Optional analytics is disabled for this deployment. No analytics request is sent.</p><p>You can choose essential storage only and still use every workspace feature. Cookie preferences can be changed through the footer. Withdrawal stops future optional page counting; aggregate counts already recorded cannot be attributed back to you.</p><h2>Hosting, retention and requests</h2><p>The operator selects the hosting region, infrastructure providers, backup policy and retention period for organizational work and audit records. These records are retained until the operator applies its documented retention process; automatic work-item deletion is not implemented. Administrators should keep access limited to current authorized members. Contact the operator to request access, corrections, removal or information about your organization's retention practices.</p><p th:if="${!#strings.isEmpty(contact)}">Contact: <a th:href="${'mailto:'+contact}" th:text="${contact}"></a>.</p><h2>Policy changes</h2><p>The operator will update this page when data practices change. Material changes should be communicated through the organization's established channels.</p></main><footer class="site-footer"><a href="/welcome">MDM</a><a href="/privacy">Privacy policy</a><a href="/terms">Terms of use</a><button type="button" class="text-button" id="cookie-preferences">Cookie preferences</button></footer><section id="cookie-consent" class="cookie-banner" aria-label="Cookie preferences" hidden><div><strong>Your privacy, your choice.</strong><p>Essential storage keeps you signed in and protects forms. Optional analytics counts public page views only.</p><a href="/privacy">Read our privacy policy</a></div><div class="cookie-actions"><button type="button" id="consent-essential" class="secondary">Essential only</button><button type="button" id="consent-analytics" th:if="${analyticsEnabled}">Allow analytics</button></div></section></body></html>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Privacy policy · MDM</title>
+<link rel="stylesheet" href="/assets/bootstrap-5.3.8.min.css">
+<link rel="stylesheet" href="/style.css">
+<meta name="description" content="How the MDM workspace uses account data, essential storage and optional aggregate analytics.">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#166956">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MDM · Team Task Management">
+<meta property="og:description" content="Manage tasks, updates and approvals across teams.">
+<meta property="og:image" th:content="${siteBase + '/assets/social-preview.png'}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MDM: clear ownership, shared priorities and recorded decisions">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="csrf-token" th:if="${_csrf != null}" th:content="${_csrf.token}">
+<meta name="csrf-header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+<meta name="mdm-analytics" th:content="${analyticsEnabled}">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="icon" href="/assets/favicon.ico" sizes="any">
+<script defer src="/assets/site.js">
+</script>
+<link rel="canonical" th:href="${siteBase + '/privacy'}">
+</head>
+<body>
+<header><a class="brand" href="/welcome">M<span>DM</span></a><a href="/login">Sign in →</a>
+</header>
+<main class="legal" id="main">
+<p class="eyebrow">YOUR INFORMATION</p>
+<h1>Privacy policy</h1>
+<p>Effective: 18 October 2026. Operator: <strong th:text="${operator}"></strong>.</p>
+<p class="notice" th:if="${#strings.isEmpty(contact)}">Deployment draft: the operator must configure its identity, contact details and organizational retention practices before publication.</p>
+<h2>Information used to run the workspace</h2>
+<p>MDM stores member names, email addresses, password hashes, roles, team memberships, work items, comments and activity history. Authorized team members and administrators can access information according to their permissions. Do not put passwords, access keys or unnecessary sensitive personal information in work items.</p>
+<h2>Security and essential storage</h2>
+<p>The service uses an essential session cookie to maintain sign-in and protect form submissions. It expires after inactivity or sign-out. Your browser stores your cookie preference for up to 180 days. Security throttling stores keyed hashes of account/IP combinations and request counters, not raw addresses in that counter table. Expired counters are periodically removed after one day. Infrastructure providers may separately retain operational logs under the operator's policy.</p>
+<h2>Optional analytics</h2>
+<p th:if="${analyticsEnabled}">If you choose analytics, MDM counts views of this introduction, privacy and terms pages by page and date. It sends no user ID, email, IP address, query string, work-item content or advertising identifier to the analytics table. It does not load an external analytics service. Aggregate rows older than 30 days are periodically removed.</p>
+<p th:unless="${analyticsEnabled}">Optional analytics is disabled for this deployment. No analytics request is sent.</p>
+<p>You can choose essential storage only and still use every workspace feature. Cookie preferences can be changed through the footer. Withdrawal stops future optional page counting; aggregate counts already recorded cannot be attributed back to you.</p>
+<h2>Hosting, retention and requests</h2>
+<p>The operator selects the hosting region, infrastructure providers, backup policy and retention period for organizational work and audit records. These records are retained until the operator applies its documented retention process; automatic work-item deletion is not implemented. Administrators should keep access limited to current authorized members. Contact the operator to request access, corrections, removal or information about your organization's retention practices.</p>
+<p th:if="${!#strings.isEmpty(contact)}">Contact: <a th:href="${'mailto:'+contact}" th:text="${contact}"></a>.</p>
+<h2>Policy changes</h2>
+<p>The operator will update this page when data practices change. Material changes should be communicated through the organization's established channels.</p>
+</main>
+<footer class="site-footer"><a href="/welcome">MDM</a><a href="/privacy">Privacy policy</a><a href="/terms">Terms of use</a><button type="button" class="text-button" id="cookie-preferences">Cookie preferences</button>
+</footer>
+<section id="cookie-consent" class="cookie-banner" aria-label="Cookie preferences" hidden>
+<div><strong>Cookie preferences</strong>
+<p>Essential storage keeps you signed in and protects forms. Optional analytics counts public page views only.</p><a href="/privacy">Read our privacy policy</a>
+</div>
+<div class="cookie-actions"><button type="button" id="consent-essential" class="secondary">Essential only</button><button type="button" id="consent-analytics" th:if="${analyticsEnabled}">Allow analytics</button>
+</div>
+</section>
+</body>
+</html>

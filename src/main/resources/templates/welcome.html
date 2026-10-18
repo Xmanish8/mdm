@@ -1,1 +1,72 @@
-<!DOCTYPE html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MDM · Clear ownership. Confident teamwork.</title><link rel="stylesheet" href="/assets/bootstrap-5.3.8.min.css"><link rel="stylesheet" href="/style.css"><meta name="description" content="MDM connects team priorities, ownership and decisions in one calm operations workspace."><meta name="robots" content="index,follow"><meta name="theme-color" content="#166956"><meta property="og:type" content="website"><meta property="og:title" content="MDM · Clear ownership. Confident teamwork."><meta property="og:description" content="A focused workspace for team operations, decisions and next steps."><meta property="og:image" th:content="${siteBase + '/assets/social-preview.png'}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="MDM: clear ownership, shared priorities and recorded decisions"><meta name="twitter:card" content="summary_large_image"><meta name="csrf-token" th:if="${_csrf != null}" th:content="${_csrf.token}"><meta name="csrf-header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"><meta name="mdm-analytics" th:content="${analyticsEnabled}"><link rel="icon" type="image/svg+xml" href="/assets/favicon.svg"><link rel="icon" href="/assets/favicon.ico" sizes="any"><script defer src="/assets/site.js"></script><link rel="canonical" th:href="${siteBase + '/welcome'}"></head><body class="public-page"><a class="skip-link" href="#main">Skip to content</a><header><a class="brand" href="/welcome" aria-label="MDM home">M<span>DM</span></a><span class="workspace-label">Built for work that matters</span><a class="button ms-auto" href="/login">Open your workspace →</a></header><main id="main"><section class="hero"><div><p class="eyebrow">CALM, CONNECTED OPERATIONS</p><h1>Every task.<br>A clear next step.</h1><p class="hero-copy">Bring your team's work, ownership and decisions into one focused workspace. Move from scattered updates to shared understanding.</p><a class="button" href="/login">Open your workspace →</a><p class="muted mt-3">For invited team members. Your work stays private.</p></div><img src="/assets/social-preview.png" width="1200" height="630" alt="MDM team workspace illustration: shared priorities, clear owners and recorded decisions" fetchpriority="high"></section><section aria-label="Workspace benefits" class="row g-4 mt-4"><div class="col-md-4"><article class="panel padded h-100"><p class="eyebrow">01 / OWNERSHIP</p><h2>Know who's moving it.</h2><p>One owner, deliberate handoffs and a concrete next action for each work item.</p></article></div><div class="col-md-4"><article class="panel padded h-100"><p class="eyebrow">02 / CONFIDENCE</p><h2>Change with context.</h2><p>Version checks protect newer changes. Approval rules keep the workflow intentional.</p></article></div><div class="col-md-4"><article class="panel padded h-100"><p class="eyebrow">03 / TEAMWORK</p><h2>Keep the story together.</h2><p>Discussion and activity history stay alongside the work, within your team's permissions.</p></article></div></section><section class="panel padded mt-4"><h2>One place to make the next move.</h2><p class="muted">Your administrator provides access and adds you to the right teams. Sign in to see your authorized work.</p><a class="button" href="/login">Open your workspace →</a></section></main><footer class="site-footer"><a href="/welcome">MDM</a><a href="/privacy">Privacy policy</a><a href="/terms">Terms of use</a><button type="button" class="text-button" id="cookie-preferences">Cookie preferences</button></footer><section id="cookie-consent" class="cookie-banner" aria-label="Cookie preferences" hidden><div><strong>Your privacy, your choice.</strong><p>Essential storage keeps you signed in and protects forms. Optional analytics counts public page views only.</p><a href="/privacy">Read our privacy policy</a></div><div class="cookie-actions"><button type="button" id="consent-essential" class="secondary">Essential only</button><button type="button" id="consent-analytics" th:if="${analyticsEnabled}">Allow analytics</button></div></section></body></html>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>MDM · Team Task Management</title>
+<link rel="stylesheet" href="/assets/bootstrap-5.3.8.min.css">
+<link rel="stylesheet" href="/style.css">
+<meta name="description" content="MDM is a task management application for teams.">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#166956">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MDM · Team Task Management">
+<meta property="og:description" content="Manage tasks, updates and approvals across teams.">
+<meta property="og:image" th:content="${siteBase + '/assets/social-preview.png'}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MDM: clear ownership, shared priorities and recorded decisions">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="csrf-token" th:if="${_csrf != null}" th:content="${_csrf.token}">
+<meta name="csrf-header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+<meta name="mdm-analytics" th:content="${analyticsEnabled}">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="icon" href="/assets/favicon.ico" sizes="any">
+<script defer src="/assets/site.js">
+</script>
+<link rel="canonical" th:href="${siteBase + '/welcome'}">
+</head>
+<body class="public-page"><a class="skip-link" href="#main">Skip to content</a>
+<header><a class="brand" href="/welcome" aria-label="MDM home">M<span>DM</span></a><span class="workspace-label">Team task management</span><a class="button ms-auto" href="/login">Sign in →</a>
+</header>
+<main id="main">
+<section class="hero">
+<div>
+<p class="eyebrow">MDM</p>
+<h1>Keep team tasks<br>in one place.</h1>
+<p class="hero-copy">Create tasks, assign owners, track progress and review changes with your team.</p><a class="button" href="/login">Sign in →</a>
+<p class="muted mt-3">For invited team members. Your work stays private.</p>
+</div><img src="/assets/social-preview.png" width="1200" height="630" alt="MDM team workspace illustration: shared priorities, clear owners and recorded decisions" fetchpriority="high">
+</section>
+<section aria-label="Workspace benefits" class="row g-4 mt-4">
+<div class="col-md-4"><article class="panel padded h-100">
+<p class="eyebrow">01 / OWNERSHIP</p>
+<h2>Assign an owner</h2>
+<p>Claim tasks or transfer them to another member of the same team.</p></article>
+</div>
+<div class="col-md-4"><article class="panel padded h-100">
+<p class="eyebrow">02 / CONFIDENCE</p>
+<h2>Review updates</h2>
+<p>Changes are checked against the latest version. Administrators review tasks submitted for approval.</p></article>
+</div>
+<div class="col-md-4"><article class="panel padded h-100">
+<p class="eyebrow">03 / TEAMWORK</p>
+<h2>Keep a task history</h2>
+<p>Comments and status changes are recorded against each task. Team permissions control access.</p></article>
+</div>
+</section>
+<section class="panel padded mt-4">
+<h2>Access your team workspace</h2>
+<p class="muted">Your administrator provides access and adds you to the right teams. Sign in to see your authorized work.</p><a class="button" href="/login">Sign in →</a>
+</section>
+</main>
+<footer class="site-footer"><a href="/welcome">MDM</a><a href="/privacy">Privacy policy</a><a href="/terms">Terms of use</a><button type="button" class="text-button" id="cookie-preferences">Cookie preferences</button>
+</footer>
+<section id="cookie-consent" class="cookie-banner" aria-label="Cookie preferences" hidden>
+<div><strong>Cookie preferences</strong>
+<p>Essential storage keeps you signed in and protects forms. Optional analytics counts public page views only.</p><a href="/privacy">Read our privacy policy</a>
+</div>
+<div class="cookie-actions"><button type="button" id="consent-essential" class="secondary">Essential only</button><button type="button" id="consent-analytics" th:if="${analyticsEnabled}">Allow analytics</button>
+</div>
+</section>
+</body>
+</html>

@@ -1,25 +1,44 @@
 # Engineering decisions
 
-## 1. Keep a small server-rendered Java system
+## Server-rendered pages and JDBC
 
-The project targets Java 21 with Spring Boot MVC, Thymeleaf and parameterized Spring JDBC. Bootstrap/CSS/JS are now self-hosted so a strict self-only CSP is practical and no third-party frontend request is required. Public introduction/legal pages are separate from the private queue. The design uses full-page navigation and URL filters rather than an SPA. Private pages are noindex and never enter the public sitemap; authentication remains the access boundary.
+Spring MVC and Thymeleaf keep routing, validation and sessions in one Java application. Bootstrap is served locally, so the app needs no frontend build or third-party asset requests. Controllers handle requests; services check access and perform database operations with parameterized `JdbcTemplate` queries. There is no unused second repository layer.
 
-## 2. Enforce consistency and privileges in the database
+## Team boundaries
 
-Claim, update and transfer SQL include expected versions. Transfer also checks recipient team membership. Audit events and durable retry keys share the mutation transaction. Runtime credentials can insert user names/emails/hashes, but cannot set or update the role column, modify/delete audit history or perform DDL. Initial ADMIN creation uses a separate provisioning identity mounted only in a tools profile. This limits accidental privilege escalation but does not replace application authorization or a database security review. The production profile disables automatic schema initialization.
+The authenticated email identifies the user. Services read the current role and team membership from the database rather than trusting a user ID supplied by a form. Members can access only their teams' tasks. Administrators manage accounts and memberships and review approvals. A new member has no team access until membership is added.
 
-## 3. Authentication, request integrity and abuse controls
+## Competing claims and stale changes
 
-BCrypt, session fixation protection, CSRF, admin URL rules and fresh service-level database permissions remain enabled. Login attempts use shared SQL quotas keyed with HMAC rather than raw usernames/IPs. A honeypot and minimum form age add basic bot friction. Failure of the limiter fails closed. No public signup or uploads are implemented; their routes/multipart requests are rejected. Plain-text user content is escaped, not treated as trusted HTML. These controls are deliberate, but they are not MFA, CAPTCHA or a guarantee against every automated attack.
+A claim updates an open, unassigned task only when its version still matches. The update count determines whether the claim succeeded. Two simultaneous claims cannot both win.
 
-## 4. Deployment boundaries and external configuration
+Edits and transfers also check the expected version and increment it. A stale form returns a conflict instead of overwriting a newer change. Transfers additionally check that the recipient belongs to the task's team and require a reason. This is optimistic concurrency: users must refresh and review changes after a conflict.
 
-Docker builds without runtime secrets. The app runs non-root, read-only, with a bounded writable /tmp. The database and app have no host port mapping. Caddy terminates HTTPS and overwrites forwarded headers before a private connection to the app. Production enforces secure cookies, hidden client errors, disabled debug and required configuration. Compose mounts file secrets via Spring configtree; .env carries only non-secret deployment settings. File secrets still require filesystem permissions and encrypted host disks. Internal MySQL TLS uses REQUIRED; identity verification with a trusted CA is a further requirement for managed/multi-host setups.
+## Workflow and history
 
-## 5. Privacy and evidence-based verification
+The workflow distinguishes open, in-progress, blocked, pending approval, resolved and cancelled work. Members cannot resolve their own pending approvals through a direct request. Completed tasks cannot be edited. Comments and work changes record activity in the same transaction as the mutation. An audit failure rolls back the work change.
 
-Analytics is disabled until configured and consented to. It counts only three public page names by date, without visitor IDs or workspace content; admins see aggregates. Security counter and analytics cleanup are bounded scheduled tasks. Work/audit retention stays an operator policy, not an unimplemented deletion promise. Tests cover workflow, retry behaviour, authorization, CSRF, headers, origin restrictions, throttling, generic errors and HTTPS configuration. Desktop/mobile checks and local asset/response measurements were performed, while Docker, real DB grants, public TLS and hosted load/Lighthouse checks remain pending. See TEST_REPORT.md for actual results.
+## Duplicate submissions
 
-## Operational trade-offs
+Create and comment forms carry a request UUID. `operation_requests` stores the actor, key, operation type, payload digest and result. Reusing a completed key with the same payload returns the prior result. Reusing it with changed data returns a conflict. The request row is locked during the transaction, so retries cannot create a second result.
 
-The service is prepared for one application instance; sessions are in memory and restart signs users out. Shared sessions, MFA/SSO, safe membership revocation, versioned migrations, container vulnerability/digest checks, monitoring and a verified backup schedule remain operator/development work before relying on it for sensitive production use.
+## Authentication and recovery
+
+Spring Security handles session login, CSRF and route-level roles. Passwords use BCrypt. Private requests also compare a session password fingerprint with the current database hash, invalidating sessions after a reset.
+
+Recovery tokens contain 256 random bits; the database stores only their SHA-256 digest. The latest link replaces earlier links, expires after 15 minutes and is consumed in the password-change transaction. User-row locks serialize competing resets. Known and unknown emails receive the same acknowledgement. Delivery is queued before account lookup to keep mail latency out of the response.
+
+The response uses `Referrer-Policy: strict-origin`: paths and query strings are omitted, but browsers retain a usable Origin on form submissions. The earlier `no-referrer` setting caused browser forms to send `Origin: null`, conflicting with exact origin checks. CSRF and foreign/opaque-origin rejection remain enabled.
+
+## Abuse controls and deployment
+
+Shared SQL counters limit login and reset attempts. Counter keys use HMAC instead of storing raw account/IP combinations. A honeypot and minimum form age add basic bot checks. Failure of the limiter rejects the request. Thymeleaf escapes user content; uploads and public signup are disabled.
+
+Production uses a separate configuration profile, restricted database credentials and a non-root container. Only Caddy publishes ports; application and database networks remain private. Runtime credentials cannot change roles, alter schema or overwrite audit history. Initial administrator creation uses a separate provisioning identity. Deployment secrets are mounted from excluded files.
+
+## Limits and next steps
+
+- Sessions and the bounded mail queue are in memory. Shared sessions and a durable mail outbox are needed for multiple instances and reliable delivery across restarts.
+- MySQL TLS uses `REQUIRED` in the single-host Compose setup. Managed or multi-host deployment should use a trusted CA and `VERIFY_IDENTITY`.
+- Membership revocation, MFA/SSO, versioned migration tooling and monitoring are not implemented.
+- Real SMTP delivery, MySQL integration tests, Docker execution, public TLS and backup restoration require deployment verification. Local tests do not establish hosted performance or a security audit.

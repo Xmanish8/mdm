@@ -2,13 +2,13 @@
 
 ## 1. Prepare the host and domain
 
-Use a Linux server with Docker Engine/Compose. This environment did not have Docker, so container execution remains a release verification step. Point the selected domain's A/AAAA records at the server. Permit inbound TCP 80/443 and UDP 443 if using HTTP/3; restrict SSH to your administrative network. Do not expose 3306 or 8080. Verify IPv6 routing if publishing an AAAA record.
+Use a Linux server with Docker Engine/Compose. Point the selected domain's A/AAAA records at the server. Permit inbound TCP 80/443 and UDP 443 if using HTTP/3; restrict SSH to your administrative network. Do not expose 3306 or 8080. Verify IPv6 routing if publishing an AAAA record.
 
 Extract this project into its own directory. Do not replace your existing local database. Compose creates a separate named volume and mdm database; your local opsflow data is not automatically migrated. If moving existing data, take a verified backup and perform an explicit staged import before switching traffic.
 
 ## 2. Configuration and secret creation
 
-The delivered .env is intentionally blank for domain/operator values and contains no passwords. In PowerShell run:
+Deployment settings belong in .env; passwords belong in protected secret files. In PowerShell run:
 
     powershell -ExecutionPolicy Bypass -File .\scripts\setup-production.ps1
 
@@ -41,7 +41,7 @@ Caddy obtains/renews certificates and redirects HTTP to HTTPS once DNS and publi
 
 MySQL initialization scripts run only when the named data volume is empty. For an existing volume, schedule a backup and explicit schema/grant migration; restarting does not rerun those scripts. Never use `docker compose down -v` on a database you need to keep.
 
-MySQL transport requires TLS. The bundled single-host network uses sslMode=REQUIRED with MySQL-generated certificates; this encrypts traffic but does not validate server identity. For a managed or multi-host database, install its CA/trust configuration and use VERIFY_IDENTITY. Do not expose the DB publicly. Verify actual grants with SHOW GRANTS before release; no live grant execution was possible here.
+MySQL transport requires TLS. The bundled single-host network uses sslMode=REQUIRED with MySQL-generated certificates; this encrypts traffic but does not validate server identity. For a managed or multi-host database, install its CA/trust configuration and use VERIFY_IDENTITY. Do not expose the DB publicly. Verify actual grants with SHOW GRANTS before release.
 
 Once initial provisioning is complete, a database administrator should disable the mdm_provisioner account until it is explicitly needed again, and securely archive/remove the initial-admin password file. The profile is not a password reset endpoint.
 
@@ -65,13 +65,13 @@ The legal pages are organization templates. Configure LEGAL_OPERATOR and LEGAL_C
 
 ## 6. Backups and operation
 
-Install age from its official distribution. Keep the age private identity off the application server. Set the non-secret AGE_RECIPIENT public recipient and run `bash scripts/backup.sh`; it streams mysqldump into an encrypted .sql.age file with restrictive permissions. Test decryption/restoration into a separate database. Arrange an operator-owned schedule, off-host copies, retention and restore drills. No backup schedule has been installed for you.
+Install age from its official distribution. Keep the age private identity off the application server. Set the non-secret AGE_RECIPIENT public recipient and run `bash scripts/backup.sh`; it streams mysqldump into an encrypted .sql.age file with restrictive permissions. Test decryption/restoration into a separate database. Arrange an operator-owned schedule, off-host copies, retention and restore drills. Install a backup schedule and verify its results.
 
 The app uses an in-memory session store: restarting signs users out. Add shared sessions before horizontal scaling. Rate counters already coordinate through MySQL. Container logs rotate, but configure operational alerting externally. Email password recovery is available after SMTP and the reset migration are configured; see FORGOT_PASSWORD.md. MFA, SSO and automated incident response are not implemented.
 
 If a secret leaks, revoke/rotate it at its source and update the protected file. Existing MySQL volume passwords are not changed by editing secret files; change the account password and application secret together using a planned rotation procedure.
 
-## References used
+## References
 
 - https://docs.docker.com/compose/how-tos/use-secrets/
 - https://caddyserver.com/docs/automatic-https

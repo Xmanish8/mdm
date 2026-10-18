@@ -1,6 +1,6 @@
 # Forgot password setup
 
-The login page now includes Forgot password? and links to /forgot-password. Choose and configure an SMTP provider before enabling email recovery. Existing demo addresses ending in .local cannot receive Internet email; use a real account email or a private local SMTP test inbox for development.
+Use Forgot password? on /login to request a reset link. Choose and configure an SMTP provider before enabling email recovery. Existing demo addresses ending in .local cannot receive Internet email; use a real account email or a private local SMTP test inbox for development.
 
 ## Local app started with start.ps1
 
@@ -23,7 +23,7 @@ On next development startup, CREATE TABLE IF NOT EXISTS adds password_reset_toke
 
 ## Existing Docker production database
 
-Back up the database, then apply database/migrations/20261018-password-reset.sql to the actual mdm database using an authorized database administrator. Apply deploy/password-reset-grants.sql afterward. These scripts have been prepared, not executed against your live database. The app requires SELECT/INSERT/DELETE on password_reset_tokens and UPDATE of only users.password_hash. Runtime role updates remain forbidden. New empty volumes receive these grants from the updated initialization script automatically; existing volumes do not rerun initialization scripts.
+Back up the database, then apply database/migrations/20261018-password-reset.sql to the actual mdm database using an authorized database administrator. Apply deploy/password-reset-grants.sql afterward. The app requires SELECT/INSERT/DELETE on password_reset_tokens and UPDATE of only users.password_hash. Runtime role updates remain forbidden. New empty volumes receive these grants from the updated initialization script automatically; existing volumes do not rerun initialization scripts.
 
 Fill SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_FROM and TLS options in the non-secret .env settings. Save the password with:
 
@@ -41,7 +41,7 @@ The SMTP override mounts only the SMTP password into the app and adds an outboun
 - Valid known/unknown email requests receive the same acknowledgement. Requests are queued before account lookup, keeping mail/lookup latency out of the HTTP response.
 - Requests require CSRF and basic bot checks. Limits are 5 per IP per 15 minutes and 3 per normalized email per hour. Reset-page inspection and submissions are also throttled.
 - The email contains a 256-bit random URL-safe token. Only its SHA-256 digest is stored. The latest issued link replaces older links and expires after 15 minutes.
-- Opening a link does not consume it. The token moves into the server-side session and the browser is redirected to /reset-password without the token in the address bar. The page has no-referrer/noindex protections and no analytics.
+- Opening a link does not consume it. The token moves into the server-side session and the browser is redirected to /reset-password without the token in the address bar. An origin-only referrer policy hides URL paths and query strings; the page is noindex and has no analytics.
 - Password submission validates confirmation and the 12-character/72-UTF-8-byte limits. User-row locking and a token recheck serialize competing resets. Password change, token deletion and audit entry commit together.
 - Passwords are BCrypt-hashed; no plaintext password or token is logged. A completion notification is queued after success. The user must sign in again; existing private-page sessions are rejected when their stored password fingerprint no longer matches the database.
 - Expired/used links display Request a new link. SMTP send failure revokes the undelivered token and does not change the password. Password-reset requests never lock the account's existing password.
@@ -50,4 +50,4 @@ The SMTP override mounts only the SMTP password into the app and adds an outboun
 
 Mail work uses a bounded in-memory queue, not a durable outbox. A restart, full queue or provider failure can lose delivery; the user can request a new link after the relevant limit. Mail failure must be monitored by the operator. Request limits reduce abuse but do not provide a CAPTCHA or a complete bot-detection service.
 
-Unit/web tests cover hashing/expiry handling, invalid/used tokens, retry validation, email failure, token-free rendered forms, CSRF/throttling, session expiry and mail configuration. Opt-in MySQL tests cover actual expiry, newest-link semantics and concurrent redemption. These actual database tests and real SMTP delivery require credentials and have not been run by the assistant. No real email has been sent or user password changed during development.
+Unit/web tests cover hashing/expiry handling, invalid/used tokens, retry validation, email failure, token-free rendered forms, CSRF/throttling, session expiry and mail configuration. Opt-in MySQL tests cover actual expiry, newest-link semantics and concurrent redemption. Run the MySQL integration tests and a real delivery check with your configured provider before enabling recovery for users.

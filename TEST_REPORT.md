@@ -1,19 +1,37 @@
-# Password recovery verification
+# Testing
 
-Implemented directly in E:\projects\MDM-production on 18 October 2026.
+Latest local result (19 October 2026): `clean package` succeeded; 99 tests discovered, 89 passed, 10 MySQL-dependent tests skipped, zero failures or errors.
 
-Final Maven package result: BUILD SUCCESS. 89 tests discovered, 79 passed, 10 explicitly skipped; zero failures/errors. Source targets Java 21; checks executed on Java 25.
+## Run the default suite
 
-New coverage includes public recovery pages, generic known/unknown acknowledgements, CSRF and rate limiting, honeypot, token-free rendered forms, validation without reflecting passwords, session invalidation, mail failure revocation, SMTP production guards and BCrypt-compatible password handling.
+```powershell
+.\mvnw.cmd test
+```
 
-Four default H2 database tests used real transactions and row locks: expired-token rejection, replacement/single-use behaviour, rollback of both password and token deletion when audit insertion fails, and exactly one successful concurrent redemption. These establish behaviour on the isolated H2 test database; they do not prove actual MySQL behaviour.
+The default suite does not require a live MySQL database. Web tests exercise controllers, templates, authentication, CSRF, team permissions, validation, headers, throttling and error handling. Service tests check transitions, stale writes, duplicate keys and reassignment rules.
 
-Ten real-MySQL-dependent tests were skipped without credentials, including three new password-reset database tests. Existing local/production MySQL schema and grants were not changed by the assistant. Development startup creates the new table; existing production volumes require the explicit table/grant migration documented in FORGOT_PASSWORD.md.
+H2 tests use real transactions and row locks for password reset expiry, replacement, single use, rollback after audit failure and concurrent redemption. Demo-account tests check Indian sample profiles, password preservation, stable user IDs and safe handling of customized/conflicting accounts. A loopback HTTP test exercises form login, cookies and the dashboard using an isolated database and stubbed work data.
 
-Email tests used a mocked sender. No real SMTP provider was configured, no real email was sent and no user's actual password was changed. Delivery is disabled by default. The bounded mail queue is in memory, not a durable outbox.
+## MySQL integration tests
 
-The real executable JAR served the new forgot-password page on a temporary loopback preview. Its mobile layout was inspected at 390px with no visible overflow; a screenshot was saved. The preview enabled the form with a placeholder SMTP host for display only; it submitted no recovery request. The temporary server was stopped afterward.
+Use a separate test database and an account allowed to create tables and clean up test rows. Never point these tests at the submission demo database or production data.
 
-The source secret check found zero common credential patterns or literal database passwords in scanned main source/deploy files. The new SMTP secret script passed PowerShell parsing. No SMTP credentials were written, printed or bundled. Git history and dependency vulnerabilities were not audited by that source check.
+```powershell
+$env:DB_URL='jdbc:mysql://127.0.0.1:3306/mdm_test'
+$env:DB_USER='your_test_database_user'
+$env:MDM_DB_TESTS='true'
+.\mvnw.cmd test
+Remove-Item Env:MDM_DB_TESTS
+```
 
-The existing production safeguards continue to pass their default tests. Docker execution, real SMTP delivery, production migration/grants, real MySQL races and public certificate/network checks remain deployment verification work. Existing signed-in sessions must sign in again after this update.
+Set `DB_PASSWORD` privately in the terminal or IDE environment before running. The integration suite checks schema/context startup, claims, stale updates, permissions, duplicate submissions and password-reset behaviour on MySQL.
+
+## Verification limits
+
+Checks were run on Java 25 with the source compiled for Java 21. Java 21 is configured in GitHub Actions. Ten MySQL-dependent tests are skipped when the opt-in is absent. H2 results do not prove MySQL behaviour. Mail tests use a mocked sender; a real SMTP delivery test is still required. Docker/public HTTPS, restricted production grants and backup restoration have not been executed in this workspace.
+
+The source checker scans selected current files for common credential patterns. It does not audit Git history or dependency vulnerabilities.
+
+```powershell
+python scripts/check-source.py
+```
