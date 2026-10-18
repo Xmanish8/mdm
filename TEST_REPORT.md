@@ -1,6 +1,6 @@
 # Testing
 
-Latest local result (19 October 2026): `clean package` succeeded; 99 tests discovered, 89 passed, 10 MySQL-dependent tests skipped, zero failures or errors.
+Latest local result (19 October 2026): Maven `package` succeeded; 102 tests discovered, 92 passed, 10 MySQL-dependent tests skipped, zero failures or errors. Render profile checks cover the platform port/URL, production settings, mounted-secret path and forwarded HTTPS. The private administrator setup helper also passed its self-check without creating a secret file. Docker images and a live Render deployment have not been executed here.
 
 ## Run the default suite
 

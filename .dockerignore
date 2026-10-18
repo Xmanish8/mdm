@@ -9,3 +9,7 @@ work
 .vscode
 .idea
 backups
+*.password
+*.secret
+bootstrap.sql
+render-bootstrap.sql

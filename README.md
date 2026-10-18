@@ -68,6 +68,8 @@ Password recovery requires SMTP and is disabled by default. See [FORGOT_PASSWORD
 
 Docker Compose includes MySQL and a Caddy HTTPS proxy. Domain, server and mail credentials must be configured before deployment. See [DEPLOYMENT.md](DEPLOYMENT.md). Analytics is optional, disabled by default and requires browser consent. Deployment has not been verified on a public host.
 
+For Render, use the separate [Render deployment and submission guide](RENDER_DEPLOYMENT.md). It runs the application as a Docker Web Service and MySQL as a private service with persistent storage; it does not use the VPS Compose/Caddy configuration.
+
 Known limits include an in-memory session store and mail queue, no MFA/SSO, no membership-revocation interface and no hosted load test. Restarting the application ends active sessions. Optional mail delivery needs a configured provider; links expire after 15 minutes and can be used once.
 
 ## Submit on GitHub

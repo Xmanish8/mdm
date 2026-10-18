@@ -14,3 +14,7 @@ Thumbs.db
 .secrets/
 .smtp-secret/
 backups/
+*.password
+*.secret
+bootstrap.sql
+render-bootstrap.sql

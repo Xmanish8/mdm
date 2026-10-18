@@ -18,3 +18,7 @@ jobs:
         run: python3 scripts/check-source.py
       - name: Build deployment image without runtime secrets
         run: docker build --tag mdm:ci .
+      - name: Build Render application image without runtime secrets
+        run: docker build --file deploy/render/app.Dockerfile --tag mdm-render:ci .
+      - name: Build Render MySQL image without runtime secrets
+        run: docker build --file deploy/render/mysql.Dockerfile --tag mdm-mysql:ci .
