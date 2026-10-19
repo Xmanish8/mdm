@@ -31,6 +31,10 @@ class RenderProfileTest {
         assertTrue(environment.getProperty("mdm.security.production",Boolean.class));
         assertTrue(environment.getProperty("server.servlet.session.cookie.secure",Boolean.class));
         assertFalse(environment.getProperty("mdm.demo.enabled",Boolean.class));
+        assertEquals("60000",environment.getProperty("spring.datasource.hikari.connection-timeout"));
+        assertEquals("60000",environment.getProperty("spring.datasource.hikari.initialization-fail-timeout"));
+        assertEquals("15000",environment.getProperty("spring.datasource.hikari.data-source-properties.connectTimeout"));
+        assertEquals("60000",environment.getProperty("spring.datasource.hikari.data-source-properties.socketTimeout"));
     }
     @Test void forwardedHttpsDoesNotLoopBehindRenderProxy() throws Exception {
         mvc.perform(get("http://mdm-render-check.onrender.com/welcome")

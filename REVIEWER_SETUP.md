@@ -56,10 +56,13 @@ Verify:
 ```sql
 SELECT name,email,role FROM mdm_review.users;
 SELECT COUNT(*) AS sample_tasks FROM mdm_review.work_items;
+SELECT COUNT(*) AS sample_memberships FROM mdm_review.team_memberships;
 SHOW GRANTS FOR 'mdm_review_app'@'%';
 ```
 
-Expect four accounts and eight tasks. All four website accounts use the value in `reviewer.password`.
+Expect four accounts, eight tasks and five memberships. If any count differs, stop and inspect the import errors before enabling the panel; do not rerun the entire initialization script against an existing database. All four website accounts use the value in `reviewer.password`.
+
+The generator explicitly collates converted strings as utf8mb4_unicode_ci, matching the new review database. Older generated SQL may encounter MySQL error 1267 on a server using another default collation and leave incomplete sample data. Preserve existing credentials and inspect the failed statements; do not regenerate or reimport the whole bootstrap to repair an existing workspace.
 
 ## 3. Push the source change
 
@@ -91,7 +94,11 @@ Set:
 MDM_REVIEWER_ENABLED=true
 SPRING_DATASOURCE_USERNAME=mdm_review_app
 MDM_RESET_EMAIL_ENABLED=false
+SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=60000
+SPRING_DATASOURCE_HIKARI_INITIALIZATION_FAIL_TIMEOUT=60000
 ```
+
+The timeout values are milliseconds. They also match the Render profile defaults. Replace an existing 5000 value: environment variables override the packaged configuration. The driver TCP connect timeout is 15 seconds and socket read timeout is 60 seconds. A bounded startup allowance gives the free instance time for TLS/authentication; it does not bypass the allowlist, certificate verification or database readiness checks.
 
 Replace `SPRING_DATASOURCE_URL` with this ONE LINE:
 

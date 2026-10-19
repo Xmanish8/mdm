@@ -301,6 +301,7 @@ Before a demo, open the public URL early enough for the app to wake naturally. D
 | PKIX/certificate/hostname error | CA belongs to this Aiven service; original hostname, truststore path, current CA |
 | Access denied for `mdm_app` | Exact generated password, username, account grants; no newline/quotes in secret file |
 | Connection timeout/refused | Aiven running; actual port; allowlist includes all Render outbound ranges |
+| `Connection attempt exceeded defined timeout` during `afterHandshake` | Render profile allows 60 seconds for pool/login setup; replace any `SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=5000` override with `60000`, then redeploy. Keep verified TLS enabled. |
 | Table does not exist | Imported full schema into `mdm`; JDBC URL ends with `/mdm` before query parameters |
 | Permission denied on SQL | Compare required grants; do not use administrator credentials as a shortcut |
 | ProductionGuard startup rejection | Both profiles, real legal email, secret lengths, HTTPS external URL |

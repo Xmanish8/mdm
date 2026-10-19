@@ -6,7 +6,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 
 /** Writes a fresh review workspace setup; never connects to or changes a database. */
 class ReviewerSetup {
-    static String literal(String value){return "CONVERT(0x"+HexFormat.of().formatHex(value.getBytes(StandardCharsets.UTF_8))+" USING utf8mb4)";}
+    static String literal(String value){return "CONVERT(0x"+HexFormat.of().formatHex(value.getBytes(StandardCharsets.UTF_8))+" USING utf8mb4) COLLATE utf8mb4_unicode_ci";}
     static String random(int bytes){byte[] value=new byte[bytes];new SecureRandom().nextBytes(value);return HexFormat.of().formatHex(value);}
     static Properties profiles(Path root)throws Exception{
         Properties data=new Properties();
@@ -64,8 +64,9 @@ class ReviewerSetup {
             if(sql.contains("test-only-reviewer-password")||sql.contains("DROP ")||sql.contains("UPDATE mdm.")||!sql.contains("CREATE USER 'mdm_review_app'"))throw new IllegalStateException("Reviewer setup self-check failed");
             long profiles=sql.lines().filter(line->line.startsWith("INSERT INTO users(")).count();
             long tasks=sql.lines().filter(line->line.startsWith("INSERT INTO work_items(")).count();
+            long memberships=sql.lines().filter(line->line.startsWith("INSERT INTO team_memberships(")).count();
             long grants=sql.lines().filter(line->line.startsWith("GRANT ")).count();
-            if(profiles!=4||tasks!=8||grants!=12)throw new IllegalStateException("Reviewer setup content is incomplete");
+            if(profiles!=4||tasks!=8||memberships!=5||grants!=12||sql.contains(" USING utf8mb4) AND"))throw new IllegalStateException("Reviewer setup content is incomplete");
             System.out.println("Reviewer setup self-check passed: 4 accounts, 8 tasks, restricted grants. No files created.");return;
         }
         if(args.length!=2)throw new IllegalArgumentException("Pass project root and private output directory");
