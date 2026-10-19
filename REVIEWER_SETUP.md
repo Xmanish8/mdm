@@ -98,7 +98,7 @@ SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=60000
 SPRING_DATASOURCE_HIKARI_INITIALIZATION_FAIL_TIMEOUT=60000
 ```
 
-The timeout values are milliseconds. They also match the Render profile defaults. Replace an existing 5000 value: environment variables override the packaged configuration. The driver TCP connect timeout is 15 seconds and socket read timeout is 60 seconds. A bounded startup allowance gives the free instance time for TLS/authentication; it does not bypass the allowlist, certificate verification or database readiness checks.
+The timeout values are milliseconds. They also match the Render profile defaults. Replace an existing 5000 value: environment variables override the packaged configuration. Do not set nested spring.datasource.hikari.data-source-properties connectTimeout/socketTimeout values: these were removed after a pool-sealed binding failure on Render. If explicit driver timeouts are needed, use the MySQL JDBC URL query parameters instead. A bounded startup allowance gives the free instance time for TLS/authentication; it does not bypass the allowlist, certificate verification or database readiness checks.
 
 Replace `SPRING_DATASOURCE_URL` with this ONE LINE:
 
