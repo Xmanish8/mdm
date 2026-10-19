@@ -1,5 +1,7 @@
 # MDM — Team Task Management
 
+For a public judge login with selectable Administrator and Member accounts, see [Reviewer role panel](REVIEWER_SETUP.md). It uses a separate sample database and is disabled by default.
+
 Manish Marathe
 
 MDM is a web application for managing work across teams. Members can create and claim tasks, record updates, transfer responsibility and submit completed work for approval. Administrators manage teams, access and approvals.

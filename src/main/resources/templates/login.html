@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in · MDM</title>
 <link rel="stylesheet" href="/assets/bootstrap-5.3.8.min.css">
 <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" th:if="${reviewer != null}" href="/assets/reviewer-login.css">
 <meta name="description" content="Sign in to your private MDM team operations workspace.">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#166956">
@@ -23,20 +24,46 @@
 <link rel="icon" href="/assets/favicon.ico" sizes="any">
 <script defer src="/assets/site.js">
 </script>
+<script defer th:if="${reviewer != null}" src="/assets/reviewer-login.js"></script>
 </head>
 <body class="login">
-<main id="main" class="login-card"><a class="brand" href="/welcome">M<span>DM</span></a>
+<main id="main" class="login-card" th:classappend="${reviewer != null ? 'with-reviewer' : ''}"><a class="brand" href="/welcome">M<span>DM</span></a>
 <p class="eyebrow">TEAM TASK MANAGEMENT</p>
 <h1>Sign in to MDM</h1>
-<p class="muted">Enter your email address and password.</p>
+<p class="muted" th:text="${reviewer != null ? 'Choose a demo role to explore the sample workspace.' : 'Enter your email address and password.'}">Enter your email address and password.</p>
 <p class="notice" th:if="${param.error}">Email or password is incorrect.</p>
 <p class="notice" th:if="${param.logout}">You have signed out.</p>
 <p class="notice" th:if="${param.reset}">Your password was updated. Sign in with your new password.</p>
 <p class="notice" th:if="${param.expired}">Your session expired or your password changed. Please sign in again.</p>
 <p class="notice" th:if="${param.formExpired}">Your sign-in form expired. Please enter your email and password again. Allow essential cookies and use one MDM address consistently.</p>
-<form th:action="@{/login}" method="post">
+<section class="reviewer-panel" th:if="${reviewer != null}" aria-labelledby="reviewer-title">
+<h2 id="reviewer-title">Explore with a demo role</h2>
+<p class="reviewer-intro">Each account has different team permissions and actions.</p>
+<form id="reviewer-login" th:action="@{/login}" method="post">
+<fieldset class="reviewer-roles"><legend class="sr-only">Choose a demonstration account</legend>
+<label class="reviewer-role" th:each="profile, position : ${reviewer.profiles}">
+<input type="radio" name="reviewer-choice" th:value="${profile.id}" th:checked="${position.first}"
+       th:attr="data-email=${profile.email},data-first-name=${profile.firstName()},data-role-label=${profile.roleLabel()}">
+<span class="reviewer-role-card"><span class="reviewer-role-top"><strong th:text="${profile.name}">Name</strong><span class="reviewer-role-badge" th:text="${profile.roleLabel()}">Member</span></span><span class="reviewer-team" th:text="${profile.team}">Team</span></span>
+</label>
+</fieldset>
+<div class="reviewer-credentials">
+<div><span>Selected account</span><strong id="reviewer-email" th:text="${reviewer.profiles[0].email}">Demo email</strong></div>
+<div><span>Public demo password</span><strong id="reviewer-password" th:text="${reviewer.password}">Demo password</strong></div>
+</div>
+<input id="reviewer-username" type="hidden" name="username" th:value="${reviewer.profiles[0].email}">
+<input type="hidden" name="password" th:value="${reviewer.password}">
+<div class="bot-field" aria-hidden="true"><label>Leave this empty<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+<button type="submit" class="reviewer-explore" data-permanent-disabled disabled
+        th:text="${'Explore as ' + reviewer.profiles[0].firstName() + ' · ' + reviewer.profiles[0].roleLabel()}">Explore demo</button>
+<noscript><p>JavaScript is needed for the role button. Use the displayed demo email and password in the manual form below.</p></noscript>
+</form>
+<p class="reviewer-note">Shared demo accounts in a separate sample workspace. Please use fictional data only.</p>
+</section>
+<div class="reviewer-divider" th:if="${reviewer != null}"><span>or sign in manually</span></div>
+<form id="account-login" th:action="@{/login}" method="post">
 <div class="bot-field" aria-hidden="true"><label>Leave this empty<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
-</div><label>Email<input class="form-control" type="email" name="username" maxlength="150" autocomplete="username" required autofocus></label><label>Password<input class="form-control" type="password" name="password" maxlength="72" autocomplete="current-password" required></label><button class="btn btn-success">Sign in →</button>
+</div><label>Email<input class="form-control" type="email" name="username" maxlength="150" autocomplete="username" required autofocus th:autofocus="${reviewer == null}"></label><label>Password<input class="form-control" type="password" name="password" maxlength="72" autocomplete="current-password" required></label><button class="btn btn-success">Sign in →</button>
 </form>
 <p class="mt-3"><a href="/forgot-password">Forgot password?</a>
 </p><small>MDM · Manish Marathe</small>

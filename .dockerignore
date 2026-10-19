@@ -13,3 +13,4 @@ backups
 *.secret
 bootstrap.sql
 render-bootstrap.sql
+reviewer-bootstrap.sql

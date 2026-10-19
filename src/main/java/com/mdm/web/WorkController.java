@@ -12,8 +12,12 @@ import org.springframework.dao.DataAccessException;
 @Controller
 public class WorkController {
     private final WorkService service;
-    public WorkController(WorkService service) { this.service=service; }
-    @GetMapping("/login") String login(jakarta.servlet.http.HttpServletRequest request) { request.getSession().setAttribute("mdm.login.issued",System.currentTimeMillis());return "login"; }
+    private final ReviewerAccess reviewer;
+    public WorkController(WorkService service,ReviewerAccess reviewer) { this.service=service;this.reviewer=reviewer; }
+    @GetMapping("/login") String login(jakarta.servlet.http.HttpServletRequest request,Model model) {
+        request.getSession().setAttribute("mdm.login.issued",System.currentTimeMillis());
+        model.addAttribute("reviewer",reviewer.view());return "login";
+    }
     @GetMapping("/") String home(Principal p,Model m,@RequestParam(defaultValue="") String q,
             @RequestParam(defaultValue="") String status,@RequestParam(defaultValue="") String priority,
             @RequestParam(defaultValue="0") long team,@RequestParam(defaultValue="0") int page) {

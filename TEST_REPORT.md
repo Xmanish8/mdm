@@ -1,8 +1,12 @@
 # Testing
 
-Latest local result (19 October 2026): Maven `package` succeeded; 104 tests discovered, 94 passed, 10 MySQL-dependent tests skipped, zero failures or errors. Render profile checks cover the platform port/URL, production settings, mounted-secret path and forwarded HTTPS. The private administrator setup helper also passed its self-check without creating a secret file. Docker images have not been built here. A public Render sign-in attempt reproduced HTTP 503; the new diagnostic change still needs deployment before its live cause can be identified.
+Latest local result (19 October 2026): Maven `package` succeeded; 116 tests discovered, 106 passed, 10 MySQL-dependent tests skipped, zero failures or errors. Render profile checks cover the platform port/URL, production settings, mounted-secret path and forwarded HTTPS. The private administrator and reviewer setup helpers passed their self-checks. Docker images have not been built here. The original Render login database failure was diagnosed and a later public test reached normal credential rejection; the new reviewer feature has not been deployed to the cloud.
 
 All 13 production-security tests passed. Database failures in request throttling still return a generic 503 and prevent authentication. Server logs now record only the operation, validated SQL state, numeric vendor code and exception class chain. Tests cover a denied database login, a reset-link TLS failure and malformed SQL-state text, and verify that exception messages, reset tokens and test credentials are not logged.
+
+Reviewer tests reject private database/account selection, a missing sample-only marker, missing or mismatched public credentials, unexpected roles and incomplete memberships. Login tests verify that reviewer credentials still require CSRF and that tampering with the selected role cannot promote a member. Disabled reviewer mode makes no reviewer database calls or credential disclosures.
+
+Local browser checks used an isolated fictional H2 workspace: card selection changed the account, Aditi signed into Operations and was denied administrator and Engineering access, and Manish signed into administration. A test-only fixture translated MySQL's IF expression to CASE for H2 rate counters; production SQL was unchanged. The panel was checked at desktop and 390px mobile width with no horizontal overflow. Actual Aiven review provisioning, restricted-account grants and the enabled live panel still require the steps in REVIEWER_SETUP.md.
 
 ## Run the default suite
 

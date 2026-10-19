@@ -2,6 +2,7 @@ package com.mdm;
 
 import com.mdm.web.RateLimits;
 import com.mdm.web.WorkService;
+import com.mdm.web.ReviewerAccess;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ class LoginFlowTest {
     @Autowired PasswordEncoder passwords;
     @MockitoBean RateLimits limits;
     @MockitoBean WorkService work;
+    @MockitoBean ReviewerAccess reviewer;
     @BeforeEach void setup(){
         jdbc.execute("CREATE TABLE IF NOT EXISTS users(email VARCHAR(150) PRIMARY KEY,password_hash VARCHAR(255),role VARCHAR(20))");
         jdbc.update("DELETE FROM users");
@@ -73,6 +75,34 @@ class LoginFlowTest {
     @Test void opaqueOriginRemainsForbiddenEvenWithValidCredentialsAndCsrf() throws Exception {
         mvc.perform(post("/login").session(form()).with(csrf()).header("Origin","null").param("username","aditi@mdm.local").param("password","test-only-login-password"))
             .andExpect(status().isForbidden());
+    }
+    @Test void reviewerPanelUsesRealLoginAndCannotPromoteAMemberFromFormFields() throws Exception {
+        String password="test-only-reviewer-password";
+        jdbc.update("INSERT INTO users VALUES (?,?,?)","aditi.review@mdm.local",passwords.encode(password),"MEMBER");
+        when(reviewer.view()).thenReturn(new ReviewerAccess.View(ReviewerAccess.catalog(),password));
+        mvc.perform(get("/login")).andExpect(status().isOk())
+            .andExpect(content().string(containsString("Explore with a demo role")))
+            .andExpect(content().string(containsString("manish.review@mdm.local")))
+            .andExpect(content().string(containsString("reviewer-login.js")))
+            .andExpect(content().string(containsString("Public demo password")));
+        var result=mvc.perform(post("/login").session(form()).with(csrf()).header("Origin","http://localhost:8080")
+                .param("username","aditi.review@mdm.local").param("password",password)
+                .param("reviewer-choice","manish").param("role","ADMIN"))
+            .andExpect(status().isFound()).andExpect(redirectedUrl("/")).andReturn();
+        var session=(MockHttpSession)result.getRequest().getSession();
+        mvc.perform(get("/").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/admin").session(session)).andExpect(status().isForbidden());
+    }
+    @Test void publicReviewerCredentialsStillRequireCsrf() throws Exception {
+        when(reviewer.view()).thenReturn(new ReviewerAccess.View(ReviewerAccess.catalog(),"test-only-reviewer-password"));
+        mvc.perform(post("/login").session(form()).param("username","manish.review@mdm.local").param("password","test-only-reviewer-password"))
+            .andExpect(status().isFound()).andExpect(redirectedUrl("/login?formExpired"));
+        mvc.perform(get("/")).andExpect(status().isFound()).andExpect(redirectedUrl("/login"));
+    }
+    @Test void ordinaryLoginDoesNotExposeReviewerAccountsWhenDisabled() throws Exception {
+        mvc.perform(get("/login")).andExpect(status().isOk())
+            .andExpect(content().string(org.hamcrest.Matchers.not(containsString("manish.review@mdm.local"))))
+            .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Public demo password"))));
     }
     @Test void browserFormAndCookiesWorkOverRealHttp() throws Exception {
         var client=java.net.http.HttpClient.newBuilder().cookieHandler(new java.net.CookieManager(null,java.net.CookiePolicy.ACCEPT_ALL)).followRedirects(java.net.http.HttpClient.Redirect.NEVER).build();

@@ -32,6 +32,8 @@ The response uses `Referrer-Policy: strict-origin`: paths and query strings are 
 
 ## Abuse controls and deployment
 
+The optional reviewer role panel uses four dedicated sample accounts and normal form authentication. Enabling it requires the separate `mdm_review` database, restricted `mdm_review_app` identity, a sample-only marker and matching account roles/passwords/memberships. Only the public demo password is displayed after these checks. The production ban on automatic demo seeding remains in place; review setup is an explicit one-time provisioning step. Review changes persist and there is no automatic destructive reset.
+
 Shared SQL counters limit login and reset attempts. Counter keys use HMAC instead of storing raw account/IP combinations. A honeypot and minimum form age add basic bot checks. Failure of the limiter rejects the request. Thymeleaf escapes user content; uploads and public signup are disabled.
 
 Production uses a separate configuration profile, restricted database credentials and a non-root container. Only Caddy publishes ports; application and database networks remain private. Runtime credentials cannot change roles, alter schema or overwrite audit history. Initial administrator creation uses a separate provisioning identity. Deployment secrets are mounted from excluded files.
