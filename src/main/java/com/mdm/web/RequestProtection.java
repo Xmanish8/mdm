@@ -44,13 +44,14 @@ public final class RequestProtection {
         }
     }
     public static class Throttle extends OncePerRequestFilter {
+        private static final org.slf4j.Logger LOG=org.slf4j.LoggerFactory.getLogger(Throttle.class);
         private final RateLimits limits;
         public Throttle(RateLimits limits){this.limits=limits;}
         @Override protected void doFilterInternal(HttpServletRequest req,HttpServletResponse res,FilterChain chain)throws ServletException,IOException{
             String ip=req.getRemoteAddr();String path=req.getRequestURI().substring(req.getContextPath().length());
             if(req.getMethod().equals("GET")&&path.equals("/reset-password")){
                 try{if(!limits.allow("reset-link-ip",ip,60,900)){blocked(res);return;}}
-                catch(org.springframework.dao.DataAccessException|IllegalStateException error){res.sendError(503);return;}
+                catch(org.springframework.dao.DataAccessException|IllegalStateException error){unavailable(res,path,error);return;}
             }
             if(!Set.of("POST","PUT","PATCH","DELETE").contains(req.getMethod())){chain.doFilter(req,res);return;}
             if(path.equals("/logout")){chain.doFilter(req,res);return;}
@@ -75,8 +76,24 @@ public final class RequestProtection {
                     String identity=auth!=null&&!(auth instanceof AnonymousAuthenticationToken)?auth.getName():"anonymous";
                     if(!limits.allow("write",ip+":"+identity,120,60)){blocked(res);return;}
                 }
-            }catch(org.springframework.dao.DataAccessException|IllegalStateException e){res.sendError(503);return;}
+            }catch(org.springframework.dao.DataAccessException|IllegalStateException e){unavailable(res,path,e);return;}
             chain.doFilter(req,res);
+        }
+        private void unavailable(HttpServletResponse res,String path,RuntimeException error)throws IOException{
+            String state="unknown";int code=0;StringBuilder causes=new StringBuilder();
+            // Log structural diagnostics only: exception messages/SQL can contain credentials.
+            int depth=0;
+            for(Throwable cause=error;cause!=null&&depth++<12;cause=cause.getCause()){
+                if(!causes.isEmpty())causes.append(" -> ");
+                causes.append(cause.getClass().getSimpleName());
+                if(cause instanceof java.sql.SQLException sql){
+                    if(sql.getSQLState()!=null&&sql.getSQLState().matches("[A-Z0-9]{5}"))state=sql.getSQLState();
+                    if(sql.getErrorCode()!=0)code=sql.getErrorCode();
+                }
+            }
+            String operation=path.equals("/login")?"login":path.equals("/reset-password")?"password-reset":path.equals("/forgot-password")?"password-recovery":"write";
+            LOG.error("Request protection unavailable: operation={}, sqlState={}, vendorCode={}, causes={}",operation,state,code,causes.toString());
+            res.sendError(503);
         }
         private void blocked(HttpServletResponse res)throws IOException{res.setHeader("Retry-After","900");res.sendError(429);}
     }

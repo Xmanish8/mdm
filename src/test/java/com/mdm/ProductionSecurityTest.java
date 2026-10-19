@@ -8,6 +8,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -17,6 +20,7 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest(properties={"spring.sql.init.mode=never","spring.datasource.password=unused","mdm.demo.enabled=false","mdm.analytics.enabled=true"})
 @AutoConfigureMockMvc
+@ExtendWith(OutputCaptureExtension.class)
 class ProductionSecurityTest {
     @Autowired MockMvc mvc;
     @MockitoBean JdbcTemplate jdbc;
@@ -62,9 +66,34 @@ class ProductionSecurityTest {
         mvc.perform(get("/not-a-real-page")).andExpect(status().isNotFound());
     }
     @Test void authenticatedPagesAreNotIndexable()throws Exception{mvc.perform(get("/login")).andExpect(header().string("X-Robots-Tag","noindex, nofollow"));}
-    @Test void databaseFailureDuringThrottlingFailsClosed()throws Exception{
-        when(limits.allow(anyString(),anyString(),anyInt(),anyInt())).thenThrow(new org.springframework.dao.DataAccessResourceFailureException("internal detail"));
-        mvc.perform(post("/login").with(csrf()).param("username","a@example.com").param("password","test-only")).andExpect(status().isServiceUnavailable());verifyNoInteractions(jdbc);
+    @Test void databaseFailureDuringThrottlingFailsClosed(CapturedOutput output)throws Exception{
+        var sql=new java.sql.SQLException("private-database-password", "28000",1045);
+        when(limits.allow(anyString(),anyString(),anyInt(),anyInt())).thenThrow(new org.springframework.dao.DataAccessResourceFailureException("private-query-and-user-details",sql));
+        mvc.perform(post("/login").with(csrf()).param("username","a@example.com").param("password","test-only"))
+            .andExpect(status().isServiceUnavailable()).andExpect(content().string(not(containsString("private-database-password"))));
+        verifyNoInteractions(jdbc);
+        org.junit.jupiter.api.Assertions.assertTrue(output.getAll().contains("operation=login, sqlState=28000, vendorCode=1045"));
+        org.junit.jupiter.api.Assertions.assertFalse(output.getAll().contains("private-database-password"));
+        org.junit.jupiter.api.Assertions.assertFalse(output.getAll().contains("private-query-and-user-details"));
+    }
+    @Test void resetLinkTlsFailureReportsCauseWithoutDetails(CapturedOutput output)throws Exception{
+        var sql=new java.sql.SQLException("private-jdbc-credentials","08S01",0,new javax.net.ssl.SSLHandshakeException("private-certificate-details"));
+        when(limits.allow(anyString(),anyString(),anyInt(),anyInt())).thenThrow(new org.springframework.dao.DataAccessResourceFailureException("private-query",sql));
+        mvc.perform(get("/reset-password").param("token","private-reset-token")).andExpect(status().isServiceUnavailable());
+        org.junit.jupiter.api.Assertions.assertTrue(output.getAll().contains("operation=password-reset, sqlState=08S01, vendorCode=0"));
+        org.junit.jupiter.api.Assertions.assertTrue(output.getAll().contains("SSLHandshakeException"));
+        for(String secret:new String[]{"private-jdbc-credentials","private-certificate-details","private-query","private-reset-token"})
+            org.junit.jupiter.api.Assertions.assertFalse(output.getAll().contains(secret));
+        verifyNoInteractions(jdbc);
+    }
+    @Test void malformedSqlStateIsNotWrittenToLogs(CapturedOutput output)throws Exception{
+        var sql=new java.sql.SQLException("private-message","private-state\nforged-log",0);
+        when(limits.allow(anyString(),anyString(),anyInt(),anyInt())).thenThrow(new org.springframework.dao.DataAccessResourceFailureException("private-query",sql));
+        mvc.perform(post("/login").with(csrf())).andExpect(status().isServiceUnavailable());
+        org.junit.jupiter.api.Assertions.assertTrue(output.getAll().contains("operation=login, sqlState=unknown"));
+        org.junit.jupiter.api.Assertions.assertFalse(output.getAll().contains("private-state"));
+        org.junit.jupiter.api.Assertions.assertFalse(output.getAll().contains("forged-log"));
+        verifyNoInteractions(jdbc);
     }
     @Test void errorPageDoesNotExposeExceptionDetails()throws Exception{
         mvc.perform(get("/error").requestAttr("jakarta.servlet.error.status_code",500).requestAttr("jakarta.servlet.error.exception",new IllegalStateException("never-expose-this-detail")))

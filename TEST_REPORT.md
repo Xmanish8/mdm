@@ -1,6 +1,8 @@
 # Testing
 
-Latest local result (19 October 2026): Maven `package` succeeded; 102 tests discovered, 92 passed, 10 MySQL-dependent tests skipped, zero failures or errors. Render profile checks cover the platform port/URL, production settings, mounted-secret path and forwarded HTTPS. The private administrator setup helper also passed its self-check without creating a secret file. Docker images and a live Render deployment have not been executed here.
+Latest local result (19 October 2026): Maven `package` succeeded; 104 tests discovered, 94 passed, 10 MySQL-dependent tests skipped, zero failures or errors. Render profile checks cover the platform port/URL, production settings, mounted-secret path and forwarded HTTPS. The private administrator setup helper also passed its self-check without creating a secret file. Docker images have not been built here. A public Render sign-in attempt reproduced HTTP 503; the new diagnostic change still needs deployment before its live cause can be identified.
+
+All 13 production-security tests passed. Database failures in request throttling still return a generic 503 and prevent authentication. Server logs now record only the operation, validated SQL state, numeric vendor code and exception class chain. Tests cover a denied database login, a reset-link TLS failure and malformed SQL-state text, and verify that exception messages, reset tokens and test credentials are not logged.
 
 ## Run the default suite
 
