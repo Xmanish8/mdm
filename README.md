@@ -73,9 +73,3 @@ Docker Compose includes MySQL and a Caddy HTTPS proxy. Domain, server and mail c
 For Render, use the separate [Render deployment and submission guide](RENDER_DEPLOYMENT.md). It runs the application as a Docker Web Service and MySQL as a private service with persistent storage; it does not use the VPS Compose/Caddy configuration.
 
 Known limits include an in-memory session store and mail queue, no MFA/SSO, no membership-revocation interface and no hosted load test. Restarting the application ends active sessions. Optional mail delivery needs a configured provider; links expire after 15 minutes and can be used once.
-
-## Submit on GitHub
-
-Keep `src`, tests, the Maven wrapper, database scripts, deployment files and these instructions in the repository. Do not upload `target`, `.env`, secret directories, backups or editor settings. Bootstrap's license is included with its local assets.
-
-Run the tests, review `git status`, commit the source and push it to your repository. The supplied workflow runs Java 21 tests, checks common secret patterns and builds the Docker image. Submit the repository link after checking its Actions result.
